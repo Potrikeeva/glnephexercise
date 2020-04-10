@@ -1,5 +1,3 @@
-% %% пока это первое приближение, хочу обернуть в функцию все это и
-% доработать
  clear; close all; clc;
  format long
  omega_z = 7.2921151467e-5; % средняя угловая скорость вращения Земли относительно т. ВР [рад/с]
@@ -25,12 +23,11 @@ Hour = 13; % час по UTC
 Min = 45; % минута по UTC
 Sec  = 0; % секунда по UTC
 
-%% Из-за перевода в МДВ мы выходим за сутки это не хорошо, 
-%либо надо учитывать либо исключать. Пока оставила на произвол судьбы.
+%% Перевод в МДВ времен прогноза
 t_start = (12+3)*60*60; % время начала прогноза указывать в МДВ
 t_end = (24+3)*60*60; % время окончания прогноза указывать в МДВ
 Day_start = 10; % день начала прогноза (должен совпадать с днем прихода эфемерид) указывать в МДВ
-%% Пересчет в МДВ
+%% Пересчет в МДВ времени эфемеридных данных
 if Hour+3 < 24 % учет перехода на МДВ
     Hour = Hour+3;
 else
@@ -71,40 +68,13 @@ JJ_x = a_x*cos(S) - a_y*sin(S);
 JJ_y = a_x*sin(S) + a_y*cos(S);
 JJ_z = a_z;
 %% В нашем случае необходимо дать прогноз на момент ранее данных эфемерид.
-% из этого я решила сделать проверку для корректной работы программы.
-%пока это выглядит как остыль и не вс варианты проработаны. подумаю ка
-%оптимизировать
-if t_e == t_start && t_end > t_e
-        t = t_start : delta_t : (t_end - delta_t); % временной ветор прогноза
-        VECTOR = zeros(6,length(t));
-        VECTOR(:,1) = [x; y; z; V_x; V_y; V_z]; 
-        VECTOR = Rung_Kut(J_2,JJ_x,JJ_y,JJ_z,A_e,GM,t,VECTOR,delta_t);
- elseif t_e == t_start && t_end < t_e
-        delta_t = -delta_t;
-        t = t_start : delta_t : (t_end - delta_t); % временной ветор прогноза
-        VECTOR = zeros(6,length(t));
-        VECTOR(:,1) = [x; y; z; V_x; V_y; V_z]; 
-        VECTOR = Rung_Kut(J_2,JJ_x,JJ_y,JJ_z,A_e,GM,t,VECTOR,delta_t);
- elseif t_e > t_start && t_end > t_e
-        t1 = t_e : delta_t : (t_end - delta_t);
-        VECTOR1 = zeros(6,length(t1));
-        VECTOR1(:,1) = [x; y; z; V_x; V_y; V_z]; 
-        VECTOR1 = Rung_Kut(J_2,JJ_x,JJ_y,JJ_z,A_e,GM,t1,VECTOR1,delta_t);
-        t2 = t_e : -delta_t : t_start;
-        VECTOR2 = zeros(6,length(t2));
-        VECTOR2(:,1) = [x; y; z; V_x; V_y; V_z]; 
-        VECTOR2 = Rung_Kut(J_2,JJ_x,JJ_y,JJ_z,A_e,GM,t2,VECTOR2,-delta_t);
-        VECTOR2 = [rot90(rot90(VECTOR2(1,:))); ...
-                   rot90(rot90(VECTOR2(2,:))); ...
-                   rot90(rot90(VECTOR2(3,:))); ...
-                   rot90(rot90(VECTOR2(4,:))); ...
-                   rot90(rot90(VECTOR2(5,:))); ...
-                   rot90(rot90(VECTOR2(6,:)))];
-                   
-        VECTOR = [VECTOR2 VECTOR1(:,2:end)];
-        t = [rot90(rot90(t2)) t1(1,2:end)];
-end     
-
+% функция Optimization подстраивает параметры относительно времени прогноза
+% и времени эфемеридных данных и сразу вычисляет методом Рунге-Кутты
+% положение КА
+VECTOR = Optimization(x,y,z,V_x,V_y,V_z,J_2,JJ_x,JJ_y,JJ_z,A_e,GM,delta_t,t_start,t_e,t_end);
+t = VECTOR(1,:);
+VECTOR = VECTOR(2:end,:);
+clear x y z V_x V_y V_z JJ_x JJ_y JJ_z t1 t2 VECTOR1 VECTOR2
 [X_erth,Y_erth,Z_erth] = sphere(40); % сфера обозначающая Землю
 X_erth =  (A_e/1e3).*X_erth;
 Y_erth =  (A_e/1e3).*Y_erth;
@@ -122,14 +92,9 @@ xlabel('X,км')
 ylabel('Y,км')
 zlabel('Z,км')
 
-%S = GMST + omega_z.*(t - 10800); % На мой взгляд здесь должен быть такой
-%пересчет... но график нелепый получается, потому закоментила, возможно
-%где-то ошибка. Ведь в этом случае не учитывается то, что мы перешли
-%через границу суток
+S = GMST + omega_z.*(t - 10800); 
 VECTOR(1,:) = VECTOR(1,:).*cos(S) + VECTOR(2,:).*sin(S);
 VECTOR(2,:) = -VECTOR(1,:).*sin(S) + VECTOR(2,:).*cos(S);
-% VECTOR(4,:) = VECTOR(4,:).*cos(S) + VECTOR(5,:).*sin(S) + omega_z.*VECTOR(2,:);
-% VECTOR(5,:) = -VECTOR(4,:).*sin(S) + VECTOR(5,:).*cos(S) + omega_z.*VECTOR(1,:);
 
 figure(2)
 surf(X_erth,Y_erth,Z_erth)
@@ -180,15 +145,22 @@ N = N_gr*pi/180 + N_min/3437.747 + N_sec/206264.8; % широта в радионах
 E = E_gr*pi/180 + E_min/3437.747 + E_sec/206264.8; % долгота в радионах
 llh = [N E H];
 PRM_coor = llh2xyz(llh)';
-%% Найдем видимые КА
+
 VECTOR = VECTOR(1:3,:).*1e3; % переход к метрам
-R = sqrt(VECTOR(1,:).^2 + VECTOR(2,:).^2 + VECTOR(3,:).^2);
-fi_vizir_min = atan(A_e./R); % минимальный угол визирования
-R_max = A_e./sin(fi_vizir_min);
-for i = 1:length(fi_vizir_min)
-    R_prm(1,i) =sqrt((PRM_coor(1,1) - VECTOR(1,i))^2 + ...
-        (PRM_coor(2,1) - VECTOR(2,i))^2 + (PRM_coor(3,1) - VECTOR(3,i))^2);
-    if R_prm(1,i) > R_max(1,i)
-        VECTOR(:,i) = NaN;
+ 
+ %% Постороение SkyPlot
+for i=1:length(VECTOR(1,:))
+    [x(i) y(i) z(i)] = ecef2enu(VECTOR(1,i),VECTOR(2,i),VECTOR(3,i),N,E,H,wgs84Ellipsoid,'radians');
+    if z(i) > 0
+     teta(i) = atan2(sqrt(x(i)^2 + y(i)^2),z(i));
+     r(i) = sqrt(x(i)^2 + y(i)^2 + z(i)^2);
+     phi(i) = atan2(y(i),x(i));
+     else teta(i) = NaN;
+     r(i) = NaN;
+     phi(i) = NaN;
     end
 end
+
+figure(4);
+polar(phi,teta*180/pi-pi,'r')
+title('Sky PLot КА 13 ГЛОНАСС')
