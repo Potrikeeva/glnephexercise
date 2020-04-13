@@ -93,8 +93,13 @@ ylabel('Y,ÍÏ')
 zlabel('Z,ÍÏ')
 
 S = GMST + omega_z.*(t - 10800); 
-VECTOR(1,:) = VECTOR(1,:).*cos(S) + VECTOR(2,:).*sin(S);
-VECTOR(2,:) = -VECTOR(1,:).*sin(S) + VECTOR(2,:).*cos(S);
+X_PZ90 = VECTOR(1,:).*cos(S) + VECTOR(2,:).*sin(S);
+Y_PZ90 = -VECTOR(1,:).*sin(S) + VECTOR(2,:).*cos(S);
+
+VECTOR(1,:) = X_PZ90;
+VECTOR(2,:) = Y_PZ90;
+clear X_PZ90 Y_PZ90
+
 
 figure(2)
 surf(X_erth,Y_erth,Z_erth)
@@ -162,5 +167,5 @@ for i=1:length(VECTOR(1,:))
 end
 
 figure(4);
-polar(phi,teta*180/pi-pi,'r')
+polar(phi,(teta*180-pi)/pi,'r')
 title('Sky PLot  ¿ 13 √ÀŒÕ¿——')
