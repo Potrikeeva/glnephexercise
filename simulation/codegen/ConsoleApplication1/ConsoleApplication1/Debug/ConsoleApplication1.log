@@ -1,0 +1,2 @@
+﻿  ConsoleApplication1.cpp
+C:\Project\glnephexercise\simulation\codegen\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.cpp(38): error C4700: использована неинициализированная локальная переменная "MAIN"

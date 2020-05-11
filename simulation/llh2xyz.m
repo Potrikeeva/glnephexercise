@@ -1,4 +1,4 @@
-function xyz = llh2xyz(llh)
+function [xyz] = llh2xyz(llh)
 %LLH2XYZ  Convert from latitude, longitude and height
 %         to ECEF cartesian coordinates.  WGS-84
 %
@@ -42,7 +42,7 @@ function xyz = llh2xyz(llh)
 
 	tmp2 = sqrt(1 - e*e*sinphi*sinphi);
 	z = (a*tmp*sinphi)/tmp2 + h*sinphi;
-
-	xyz(1) = x;
-	xyz(2) = y;
-	xyz(3) = z;
+    
+    cor = [x y z];
+	[xyz] = cor;
+end

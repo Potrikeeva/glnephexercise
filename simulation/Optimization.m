@@ -1,4 +1,6 @@
 function [Optim] = Optimization(x,y,z,V_x,V_y,V_z,J_2,JJ_x,JJ_y,JJ_z,A_e,GM,delta_t,t_start,t_e,t_end)
+    t = 0;
+    VECTOR = 0;
     if (t_e == t_start && t_end > t_e) || (t_e < t_start && t_end > t_e)
             t = t_start : delta_t : (t_end - delta_t); % временной ветор прогноза
             VECTOR = zeros(6,length(t));

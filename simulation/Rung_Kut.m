@@ -8,7 +8,7 @@ function [RU] = Rung_Kut(J_2,JJ_x,JJ_y,JJ_z,A_e,GM,t,VECTOR,delta_t)
         K3 = f_x(coor_3,J_2,A_e,GM);
         coor_4 = VECTOR(:,i) + delta_t.*K3;
         K4 = f_x(coor_4,J_2,A_e,GM);
-        clear coor_2 coor_3 coor_4
+        %clear coor_2 coor_3 coor_4
         VECTOR(:,i+1) = VECTOR(:,i) + (delta_t/6)*(K1 + 2*K2 + 2*K3 + K4);
     end
     [RU] = VECTOR;

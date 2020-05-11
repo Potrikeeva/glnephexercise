@@ -1,32 +1,13 @@
- clear; close all; clc;
- format long
+ function [MAIN] = Main_balistic(x,y,z,V_x,V_y,V_z,a_x,a_y,a_z,Year,Month,Day,Hour,Min,Sec,t_start,t_end,Day_start)
+ %format long
  omega_z = 7.2921151467e-5; % средняя угловая скорость вращения Земли относительно т. ВР [рад/с]
  A_e = 6378136; % большая полуось общеземного эллипсоида [м]
  GM = 398600441.8e6; % геоцентр. конст. грав. поля Земли с учетом атмосф. [м^3/c^2]
  J_2 = 1082625.75e-9; % зональный гармонический коэф. второй степени
 delta_t = 1;
-%% Данные эфимирид
-x = 10584969.2383; % координата Х в системе ПЗ_90 [m]
-y = 2721713.86719; % координата Y в системе ПЗ_90 [m]
-z = 23027096.6797; % координата Z в системе ПЗ_90 [m]
-V_x = -788.876533508; % скорость по Х в системе ПЗ_90 [m/s]
-V_y = 3058.68911743; % скорость по Y в системе ПЗ_90 [m/s]
-V_z = 1.50871276855; % скорость по Z в системе ПЗ_90 [m/s]
-a_x = 0; % ускорение по Х в системе ПЗ_90 [m/s^2]
-a_y = 0; % ускорение по Y в системе ПЗ_90 [m/s^2]
-a_z = -372.529029846e-9; % ускорение по Z в системе ПЗ_90 [m/s^2]
-
-Year = 2020; % год по UTC
-Month = 2; % месяц по UTC
-Day = 10; % день по UTC
-Hour = 13; % час по UTC
-Min = 45; % минута по UTC
-Sec  = 0; % секунда по UTC
-
 %% Перевод в МДВ времен прогноза
-t_start = (12+3)*60*60; % время начала прогноза указывать в МДВ
-t_end = (24+3)*60*60; % время окончания прогноза указывать в МДВ
-Day_start = 10; % день начала прогноза (должен совпадать с днем прихода эфемерид) указывать в МДВ
+t_start = (t_start+3)*60*60; % время начала прогноза указывать в МДВ
+t_end = (t_end+3)*60*60; % время окончания прогноза указывать в МДВ
 %% Пересчет в МДВ времени эфемеридных данных
 if Hour+3 < 24 % учет перехода на МДВ
     Hour = Hour+3;
@@ -74,16 +55,16 @@ JJ_z = a_z;
 VECTOR = Optimization(x,y,z,V_x,V_y,V_z,J_2,JJ_x,JJ_y,JJ_z,A_e,GM,delta_t,t_start,t_e,t_end);
 t = VECTOR(1,:);
 VECTOR = VECTOR(2:end,:);
-clear x y z V_x V_y V_z JJ_x JJ_y JJ_z t1 t2 VECTOR1 VECTOR2
-[X_erth,Y_erth,Z_erth] = sphere(40); % сфера обозначающая Землю
-X_erth =  (A_e/1e3).*X_erth;
-Y_erth =  (A_e/1e3).*Y_erth;
-Z_erth =  (A_e/1e3).*Z_erth;
+%clear x y z V_x V_y V_z JJ_x JJ_y JJ_z t1 t2 VECTOR1 VECTOR2
+% [X_erth,Y_erth,Z_erth] = sphere(40); % сфера обозначающая Землю
+% X_erth =  (A_e/1e3).*X_erth;
+% Y_erth =  (A_e/1e3).*Y_erth;
+% Z_erth =  (A_e/1e3).*Z_erth;
 
 VECTOR = VECTOR./1e3;% переход к километрам
 
 figure(1)
-surf(X_erth,Y_erth,Z_erth)
+% surf(X_erth,Y_erth,Z_erth)
 grid on
 hold on
 plot3(VECTOR(1,:),VECTOR(2,:),VECTOR(3,:))
@@ -98,11 +79,11 @@ Y_PZ90 = -VECTOR(1,:).*sin(S) + VECTOR(2,:).*cos(S);
 
 VECTOR(1,:) = X_PZ90;
 VECTOR(2,:) = Y_PZ90;
-clear X_PZ90 Y_PZ90
+%clear X_PZ90 Y_PZ90
 
 
 figure(2)
-surf(X_erth,Y_erth,Z_erth)
+% surf(X_erth,Y_erth,Z_erth)
 grid on
 hold on
 plot3(VECTOR(1,:),VECTOR(2,:),VECTOR(3,:))
@@ -129,7 +110,7 @@ end
 
 VECTOR = VECTOR(1:3,:)./1e3; % переход к км
 figure(3)
-surf(X_erth,Y_erth,Z_erth)
+%surf(X_erth,Y_erth,Z_erth)
 grid on
 hold on
 plot3(VECTOR(1,:),VECTOR(2,:),VECTOR(3,:))
@@ -149,18 +130,27 @@ H = 500;% высота в метрах
 N = N_gr*pi/180 + N_min/3437.747 + N_sec/206264.8; % широта в радионах
 E = E_gr*pi/180 + E_min/3437.747 + E_sec/206264.8; % долгота в радионах
 llh = [N E H];
-PRM_coor = llh2xyz(llh)';
-
+PRM_coor = llh2xyz(llh);
 VECTOR = VECTOR(1:3,:).*1e3; % переход к метрам
  
  %% Постороение SkyPlot
+  x = zeros(1,length(VECTOR(1,:)));
+  y = zeros(1,length(VECTOR(1,:)));
+  z = zeros(1,length(VECTOR(1,:)));
+  r = zeros(1,length(VECTOR(1,:)));
+  teta = zeros(1,length(VECTOR(1,:)));
+  phi = zeros(1,length(VECTOR(1,:)));
 for i=1:length(VECTOR(1,:))
-    [x(i) y(i) z(i)] = ecef2enu(VECTOR(1,i),VECTOR(2,i),VECTOR(3,i),N,E,H,wgs84Ellipsoid,'radians');
+    cor = ec2en(PRM_coor(1,1),PRM_coor(1,2),PRM_coor(1,3),VECTOR(1,i),VECTOR(2,i),VECTOR(3,i));
+    x(i) = cor(1,1);
+    y(i) = cor(1,2);
+    z(i) = cor(1,3);
+    %[x(i) y(i) z(i)] = ecef2enu(VECTOR(1,i),VECTOR(2,i),VECTOR(3,i),N,E,H,wgs84Ellipsoid,'radians');
     if z(i) > 0
      teta(i) = atan2(sqrt(x(i)^2 + y(i)^2),z(i));
      r(i) = sqrt(x(i)^2 + y(i)^2 + z(i)^2);
      phi(i) = atan2(y(i),x(i));
-     else teta(i) = NaN;
+    else
      r(i) = NaN;
      phi(i) = NaN;
     end
@@ -169,3 +159,5 @@ end
 figure(4);
 polar(phi,(teta*180-pi)/pi,'r')
 title('Sky PLot КА 13 ГЛОНАСС')
+[MAIN] = [teta; r; phi];
+end
