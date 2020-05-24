@@ -1,10 +1,10 @@
  function [MAIN] = Main_balistic(x,y,z,V_x,V_y,V_z,a_x,a_y,a_z,Year,Month,Day,Hour,Min,Sec,t_start,t_end,Day_start)
- %format long
+ format long e
  omega_z = 7.2921151467e-5; % средняя угловая скорость вращения Земли относительно т. ВР [рад/с]
  A_e = 6378136; % большая полуось общеземного эллипсоида [м]
  GM = 398600441.8e6; % геоцентр. конст. грав. поля Земли с учетом атмосф. [м^3/c^2]
  J_2 = 1082625.75e-9; % зональный гармонический коэф. второй степени
-delta_t = 1;
+delta_t = 0.1;
 %% Перевод в МДВ времен прогноза
 t_start = (t_start+3)*60*60; % время начала прогноза указывать в МДВ
 t_end = (t_end+3)*60*60; % время окончания прогноза указывать в МДВ
@@ -55,16 +55,21 @@ JJ_z = a_z;
 VECTOR = Optimization(x,y,z,V_x,V_y,V_z,J_2,JJ_x,JJ_y,JJ_z,A_e,GM,delta_t,t_start,t_e,t_end);
 t = VECTOR(1,:);
 VECTOR = VECTOR(2:end,:);
-%clear x y z V_x V_y V_z JJ_x JJ_y JJ_z t1 t2 VECTOR1 VECTOR2
-% [X_erth,Y_erth,Z_erth] = sphere(40); % сфера обозначающая Землю
-% X_erth =  (A_e/1e3).*X_erth;
-% Y_erth =  (A_e/1e3).*Y_erth;
-% Z_erth =  (A_e/1e3).*Z_erth;
+A = VECTOR(1:3,:);
+formatSpec = '%10.14f %10.14f %10.14f\n';
+fileID = fopen('XYZ.txt','w');
+fprintf(fileID, formatSpec, A);
+fclose(fileID);
+clear x y z V_x V_y V_z JJ_x JJ_y JJ_z t1 t2 VECTOR1 VECTOR2
+[X_erth,Y_erth,Z_erth] = sphere(40); % сфера обозначающая Землю
+X_erth =  (A_e/1e3).*X_erth;
+Y_erth =  (A_e/1e3).*Y_erth;
+Z_erth =  (A_e/1e3).*Z_erth;
 
 VECTOR = VECTOR./1e3;% переход к километрам
 
 figure(1)
-% surf(X_erth,Y_erth,Z_erth)
+surf(X_erth,Y_erth,Z_erth)
 grid on
 hold on
 plot3(VECTOR(1,:),VECTOR(2,:),VECTOR(3,:))
@@ -79,11 +84,11 @@ Y_PZ90 = -VECTOR(1,:).*sin(S) + VECTOR(2,:).*cos(S);
 
 VECTOR(1,:) = X_PZ90;
 VECTOR(2,:) = Y_PZ90;
-%clear X_PZ90 Y_PZ90
+clear X_PZ90 Y_PZ90
 
 
 figure(2)
-% surf(X_erth,Y_erth,Z_erth)
+surf(X_erth,Y_erth,Z_erth)
 grid on
 hold on
 plot3(VECTOR(1,:),VECTOR(2,:),VECTOR(3,:))
@@ -110,7 +115,7 @@ end
 
 VECTOR = VECTOR(1:3,:)./1e3; % переход к км
 figure(3)
-%surf(X_erth,Y_erth,Z_erth)
+surf(X_erth,Y_erth,Z_erth)
 grid on
 hold on
 plot3(VECTOR(1,:),VECTOR(2,:),VECTOR(3,:))
