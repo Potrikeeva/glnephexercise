@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="efem_calc.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -28,6 +25,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="f_x.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

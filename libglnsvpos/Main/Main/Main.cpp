@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+//#include <vld.h>
 #include"efem_calc.h"
 
 double x = 10584969.2383; // координата Х в системе ПЗ_90[m]

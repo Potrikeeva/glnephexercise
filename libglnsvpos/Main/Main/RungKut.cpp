@@ -45,7 +45,6 @@ struct Place* RungKut(struct Place* result, int length,
         Place K3;
         Place K4;
         Place cor;
-        Place kkk;
         cor = { result[i].x, result[i].y, result[i].z, result[i].V_x, result[i].V_y, result[i].V_z };
 
         K1 = f_x(A_e, GM, cor, J_2);

@@ -182,5 +182,7 @@ void efem_calc(double x, double y, double z, double V_x, double V_y, double V_z,
     std::cout.precision(3); //3 - число символов после точки
     std::cout << "Time of the programm:\n\n";
     std::cout << "Time, s = " << end_time << "\n\n";
+    delete[] result;
+    result = nullptr;
 }
 
